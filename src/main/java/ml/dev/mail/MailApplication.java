@@ -1,0 +1,21 @@
+package ml.dev.mail;
+
+import ml.dev.mail.service.ConfigProperties;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class })
+@EnableConfigurationProperties(ConfigProperties.class)
+public class MailApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(MailApplication.class, args);
+    }
+
+}
