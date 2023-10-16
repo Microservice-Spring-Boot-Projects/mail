@@ -41,6 +41,10 @@ public class EmailService {
             if (mailDTO.getReplyTo() != null)
                 helperMsg.setReplyTo(mailDTO.getReplyTo());
             helperMsg.setTo(String.join(",", mailDTO.getTos()));
+            if (mailDTO.getBccs() != null && !mailDTO.getBccs().isEmpty())
+                helperMsg.setBcc(String.join(",", mailDTO.getBccs()));
+            if (mailDTO.getCcs() != null && !mailDTO.getCcs().isEmpty())
+                helperMsg.setCc(String.join(",", mailDTO.getCcs()));
             helperMsg.setSubject(mailDTO.getSubject());
             helperMsg.setText(mailDTO.getText(), true);
             if (!mailDTO.getMedias().isEmpty())

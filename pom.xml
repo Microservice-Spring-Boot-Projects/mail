@@ -45,7 +45,7 @@
 		<dependency>
 			<groupId>ml.dev</groupId>
 			<artifactId>common.lib</artifactId>
-			<version>1.3.53</version>
+			<version>1.3.59</version>
 		</dependency>
 	</dependencies>
 
