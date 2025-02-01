@@ -6,7 +6,6 @@ import ml.dev.common.dto.MediaDTO;
 import ml.dev.common.dto.config.AccountDTO;
 import ml.dev.common.dto.mail.MailDTO;
 import ml.dev.common.rest.client.AccountClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -20,10 +19,10 @@ import java.util.logging.Logger;
 public class EmailService {
 
     private static final Logger logger = Logger.getLogger(EmailService.class.getName());
+    @SuppressWarnings("unused")
     private final ConfigProperties configProperties;
     private final AccountClient accountClient;
 
-    @Autowired
     public EmailService(ConfigProperties configProperties) {
         this.configProperties = configProperties;
         this.accountClient = new AccountClient(configProperties.getAccountBaseurl()
