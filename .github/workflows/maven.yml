@@ -26,4 +26,9 @@ jobs:
         distribution: 'zulu'
         cache: maven
     - name: Build with Maven
-      run: mvn clean install -DskipTests
+      uses: whelk-io/maven-settings-xml-action@v22
+      with:
+        repositories: '[{ "id": "nexus-repository", "url": "https://nexus3.missforty.de/repository/maven-public/" }]'
+        plugin_repositories: '[{ "id": "nexus-plugin-repository", "url": "ttps://nexus3.missforty.de/repository/maven-public/" }]'
+        servers: '[{ "id": "some-server", "username": "admin", "password": "Linti21!" }]'
+
