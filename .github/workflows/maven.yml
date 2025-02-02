@@ -33,4 +33,18 @@ jobs:
         servers: '[{ "id": "some-server", "username": "admin", "password": "Linti21!" }]'
     - name: Maven RUN
       run: mvn clean install -DskipTests
+    - name: SFTP Deploy
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.1
+        with:
+          username: ubuntu
+          server: 158.101.173.0
+          port: 22 # default is 22
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY_SPRING_VM }}
+          # will put all file under this path
+          local_path: /home/runner/.m2/repository/ml/dev/mail/0.0.1/mail-0.0.1.jar # default is ./*
+          # files will copy to under remote_path
+          remote_path: /home/ubuntu/
+          
+          # sftp args
+          args: '-o ConnectTimeout=5'  
 
