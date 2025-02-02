@@ -39,7 +39,7 @@ jobs:
         # will put all file under this path
         local_path: target/mail-0.0.1.jar # default is ./*
         # files will copy to under remote_path
-        remote_path: mail-0.0.1.jar
+        remote_path: test
         # sftp args
         args: '-o ConnectTimeout=5'
     - name: executing remote ssh commands using ssh key
