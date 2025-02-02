@@ -16,6 +16,18 @@
 	<properties>
 		<java.version>17</java.version>
 	</properties>
+	<distributionManagement>
+		<repository>
+		<id>maven-releases</id>
+		<name>Internal Releases</name>
+		<url>https://nexus3.missforty.de/repository/maven-releases/</url>
+		</repository>
+		<snapshotRepository>
+		<id>maven-snapshots</id>
+		<name>Internal Releases</name>
+		<url>https://nexus3.missforty.de/repository/maven-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

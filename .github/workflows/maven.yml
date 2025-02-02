@@ -1,0 +1,53 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: MAIL-CI/CD
+on:
+  push:
+    branches: [ "master" ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'zulu'
+        cache: maven
+    - name: Setting up Maven
+      uses: whelk-io/maven-settings-xml-action@v22
+      with:
+        repositories: '[{ "id": "nexus-repository", "url": "https://nexus3.missforty.de/repository/maven-public/" }]'
+        plugin_repositories: '[{ "id": "nexus-plugin-repository", "url": "ttps://nexus3.missforty.de/repository/maven-public/" }]'
+        servers: ${{secrets.NEXUS_SERVER_SETTING}}
+    - name: Maven RUN
+      run: mvn clean install -DskipTests
+    - name: SFTP Deploy
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.1
+      with:
+        username: ${{secrets.SPRING_BOOT_USERNAME}}
+        server: ${{secrets.SPRING_BOOT_HOST}} 
+        port: 22 # default is 22
+        ssh_private_key: ${{secrets.SSH_PRIVATE_KEY_SPRING_VM}}
+        # will put all file under this path
+        local_path: target/mail-0.0.1.jar # default is ./*
+        # files will copy to under remote_path
+        remote_path: spring-prod/mail.service
+        # sftp args
+        args: '-o ConnectTimeout=5'
+    - name: executing remote ssh commands using ssh key
+      uses: appleboy/ssh-action@v1.2.0
+      with:
+        #TODO Hostname as parameter
+        host: ${{secrets.SPRING_BOOT_HOST}} 
+        username: ${{secrets.SPRING_BOOT_USERNAME}}
+        key: ${{secrets.SSH_PRIVATE_KEY_SPRING_VM }}
+        port: 22
+        script: sudo systemctl restart mail.service
