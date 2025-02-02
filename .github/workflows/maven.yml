@@ -45,6 +45,7 @@ jobs:
     - name: executing remote ssh commands using ssh key
       uses: appleboy/ssh-action@v1.2.0
       with:
+        #TODO Hostname as parameter
         host: 158.101.173.0
         username: ubuntu
         key: ${{ secrets.SSH_PRIVATE_KEY_SPRING_VM }}
