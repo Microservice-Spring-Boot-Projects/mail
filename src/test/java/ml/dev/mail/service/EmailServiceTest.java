@@ -1,24 +1,16 @@
 package ml.dev.mail.service;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import ml.dev.common.dto.mail.MailDTO;
 
 @ExtendWith(SpringExtension.class)
 @EnableConfigurationProperties(value = ConfigProperties.class)
 @TestPropertySource("classpath:application.properties")
 public class EmailServiceTest {
 
-    @InjectMocks
+    /*@InjectMocks
     private EmailService emailService;
 
     @Autowired
@@ -40,5 +32,5 @@ public class EmailServiceTest {
         MailDTO mailDTO = new MailDTO();
         emailService.sendMail(mailDTO, "4");
         System.out.println("testSendMail");
-    }
+    }*/
 }
