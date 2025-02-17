@@ -37,7 +37,7 @@ jobs:
         username: ${{secrets.SPRING_BOOT_USERNAME}}
         key: ${{secrets.SSH_PRIVATE_KEY_SPRING_VM }}
         port: 22
-        script: sudo cp spring-prod/mail.service/mail-0.0.1.jar /backup
+        script: sudo cp /home/ubuntu/spring-prod/mail.service/*.jar /home/ubuntu/backup
     - name: SFTP Deploy
       uses: wlixcc/SFTP-Deploy-Action@v1.2.1
       with:
