@@ -29,6 +29,15 @@ jobs:
         servers: ${{secrets.NEXUS_SERVER_SETTING}}
     - name: Maven RUN
       run: mvn clean install -DskipTests
+    - name: Backup file on server
+      uses: appleboy/ssh-action@v1.2.0
+      with:
+        #TODO Hostname as parameter
+        host: ${{secrets.SPRING_BOOT_HOST}} 
+        username: ${{secrets.SPRING_BOOT_USERNAME}}
+        key: ${{secrets.SSH_PRIVATE_KEY_SPRING_VM }}
+        port: 22
+        script: sudo cp /home/ubuntu/spring-prod/mail.service/*.jar /home/ubuntu/backup
     - name: SFTP Deploy
       uses: wlixcc/SFTP-Deploy-Action@v1.2.1
       with:
