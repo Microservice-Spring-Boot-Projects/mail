@@ -5,7 +5,6 @@ import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
-import jakarta.mail.NoSuchProviderException;
 import jakarta.mail.Part;
 import jakarta.mail.Session;
 import jakarta.mail.Store;

@@ -39,7 +39,7 @@ public class SenderController {
 
     
     @SuppressWarnings("rawtypes")
-    @CrossOrigin("*")
+    @CrossOrigin()
     @PostMapping(path = "/mails", consumes = { MediaType.APPLICATION_JSON_VALUE })
     public ResponseEntity getMails(@RequestBody MailSearchRequest msr) {
         try {
