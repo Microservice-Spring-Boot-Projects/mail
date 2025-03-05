@@ -49,7 +49,7 @@
 		<dependency>
 			<groupId>ml.dev</groupId>
 			<artifactId>common.lib</artifactId>
-			<version>1.4.7</version>
+			<version>1.4.13</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
 		<dependency>
