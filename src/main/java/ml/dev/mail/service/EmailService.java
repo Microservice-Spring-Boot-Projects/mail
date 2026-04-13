@@ -21,10 +21,10 @@ import jakarta.mail.search.SubjectTerm;
 import ml.dev.common.dto.MediaDTO;
 import ml.dev.common.dto.config.AccountDTO;
 import ml.dev.common.dto.mail.MailDTO;
+import ml.dev.common.dto.mail.MailSearchRequestDTO;
 import ml.dev.common.exception.ExceptionCodes;
 import ml.dev.common.exception.MLException;
 import ml.dev.common.rest.client.AccountClient;
-import ml.dev.mail.dto.MailSearchRequest;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.ByteArrayResource;
@@ -61,8 +61,8 @@ public class EmailService {
                 configProperties.getAccountPasswd());
     }
 
-    public List<MailDTO> getMails(MailSearchRequest msr) throws MLException {
-        Store store = getImapsConnection(msr.getAccountId());
+    public List<MailDTO> getMails(MailSearchRequestDTO msr) throws MLException {
+        Store store = getImapsConnection(msr.getAccountIdentifier());
         try {
             Folder inbox = store.getFolder("inbox");
             inbox.open(Folder.READ_ONLY);
@@ -112,8 +112,8 @@ public class EmailService {
         }
     }
 
-    private Store getImapsConnection(String accountId) throws MLException {
-        AccountDTO accountDTO = accountClient.getAccountData("mail", accountId);
+    private Store getImapsConnection(String identifier) throws MLException {
+        AccountDTO accountDTO = accountClient.getAccountData("mail", identifier);
         Properties props = System.getProperties();
         props.setProperty("mail.store.protocol", "imaps");
         Session session = Session.getDefaultInstance(props, null);
