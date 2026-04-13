@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.11</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>ml.dev</groupId>
 	<artifactId>mail</artifactId>
@@ -59,7 +59,7 @@
 		<dependency>
 			<groupId>ml.dev</groupId>
 			<artifactId>common.lib</artifactId>
-			<version>1.4.13</version>
+			<version>1.4.23</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jsoup</groupId>
@@ -74,8 +74,8 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
-			<finalName>${project.artifactId}</finalName>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
