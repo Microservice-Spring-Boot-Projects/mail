@@ -21,16 +21,17 @@ public class SecurityConfig {
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-                http.csrf(csrf -> csrf
-                                .disable())
-                                .authorizeHttpRequests(requests -> requests
+                http
+                                .csrf(csrf -> csrf.disable())
+                                .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.OPTIONS).permitAll()
-                                                .anyRequest()
-                                                .authenticated());
-                http.oauth2ResourceServer(server -> server
-                                .jwt().jwtAuthenticationConverter(jwtAuthConverter));
-                http.sessionManagement(management -> management
-                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                                                .anyRequest().authenticated())
+                                .oauth2ResourceServer(oauth2 -> oauth2
+                                                .jwt(jwt -> jwt
+                                                                .jwtAuthenticationConverter(jwtAuthConverter)))
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
                 return http.build();
         }
 
