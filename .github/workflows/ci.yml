@@ -1,0 +1,105 @@
+name: WHATSAPP_API_PIPELINE
+on:
+  pull_request:
+    branches: [ "develop" ]
+  push:
+    branches: [ "develop" ]
+  workflow_dispatch:  
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read      # Erlaubt das Auschecken des Codes
+      pull-requests: read # Erlaubt dem Filter zu sehen, welche Dateien sich im PR geändert haben
+    steps:
+
+    # 1. Code aus dem Repository laden
+    - uses: actions/checkout@v4
+
+    # 2. Java 25 installieren (deine Version vom Server)
+    - name: Set up JDK 25
+      uses: actions/setup-java@v4
+      with:
+        java-version: '25'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Setting up Maven
+      uses: whelk-io/maven-settings-xml-action@v22
+      with:
+        repositories: '[{ "id": "nexus-repository", "url": "https://nexus3.missforty.de/repository/maven-public/" }]'
+        plugin_repositories: '[{ "id": "nexus-plugin-repository", "url": "https://nexus3.missforty.de/repository/maven-public/" }]'
+        servers: ${{secrets.NEXUS_SERVER_SETTING}}
+    # 4. Bauen und Tests ausführen
+    - name: Build and Run Tests
+      run: mvn clean test
+    # 5. Check libraries on vulnerabilies
+    - name: Trivy Scan (HIGH - Warning only)
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scanners: 'vuln,secret'
+        format: 'table'
+        exit-code: '0' # Wichtig: 0 bedeutet, der Job geht immer weiter
+        severity: 'HIGH'
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs' # Scannt das Dateisystem (deine pom.xml)
+        scanners: 'vuln,secret'
+        format: 'table'
+        exit-code: '1'  # Lässt die Pipeline bei Fehlern fehlschlagen
+        severity: 'CRITICAL' # CRITICAL,HIGH
+    # Wir bauen das JAR File hier bereits, damit wir es im Deploy-Job nutzen können
+    - name: Package Application
+      run: mvn package -DskipTests
+
+    # Das JAR File für den nächsten Job zwischenspeichern
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: mail-jar
+        path: target/mail.jar
+
+  # 6. Deployment nur bei Push auf main      
+  deploy:
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4 # 
+        with:
+          name: mail-jar
+
+      - name: List files (Debug)
+        run: ls -R  # Zeigt uns genau, wo das JAR-File gerade liegt    
+      #let it work
+      - name: Deploy to Strato via SSH
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.STRATO_HOST }}
+          username: ${{ secrets.STRATO_HOST_USER}}
+          key: ${{ secrets.STRATO_HOST_SSH_KEY }}
+          passphrase: ${{ secrets.STRATO_PASSPHRASE }}
+          source: "mail.jar"
+          target: "/var/lib/springapp/deploy"
+          strip_components: 0
+          debug: true
+      
+      - name: Debug Network Connection
+        run: |
+          echo "Prüfe Erreichbarkeit von ${{ secrets.STRATO_HOST }} auf Port 22..."
+          nc -zv -w 5 ${{ secrets.STRATO_HOST }} 22 || echo "PORT 22 IST BLOCKIERT"
+      # Alternativ: SFTP Deploy Action, da sie besser mit SSH Keys und Passphrasen umgehen kann
+      - name: Restart Spring Boot Service
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.STRATO_HOST }}
+          username: ${{ secrets.STRATO_HOST_USER }}
+          key: ${{ secrets.STRATO_HOST_SSH_KEY}}
+          passphrase: ${{ secrets.STRATO_PASSPHRASE }}
+          script: |
+            # Verschiebe das neue JAR an den finalen Ort und starte den Dienst neu
+            mv /var/lib/springapp/deploy/mail.jar /opt/spring-app/mail/mail.jar
+            sudo systemctl restart mail.service
