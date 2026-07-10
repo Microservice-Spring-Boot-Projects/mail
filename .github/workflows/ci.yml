@@ -1,4 +1,4 @@
-name: WHATSAPP_API_PIPELINE
+name: MAIL_PIPELINE
 on:
   pull_request:
     branches: [ "develop" ]
