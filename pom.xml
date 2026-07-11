@@ -14,6 +14,7 @@
 	<name>mail</name>
 	<description>Mail Service for all applications</description>
 	<properties>
+		<tomcat.version>11.0.22</tomcat.version>
 		<java.version>25</java.version>
 		<maven.compiler.source>25</maven.compiler.source>
     	<maven.compiler.target>25</maven.compiler.target>

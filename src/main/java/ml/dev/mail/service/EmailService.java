@@ -13,7 +13,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.search.AndTerm;
 import jakarta.mail.search.BodyTerm;
-import jakarta.mail.search.DateTerm;
+import jakarta.mail.search.ComparisonTerm;
 import jakarta.mail.search.FromStringTerm;
 import jakarta.mail.search.ReceivedDateTerm;
 import jakarta.mail.search.SearchTerm;
@@ -24,7 +24,6 @@ import ml.dev.common.dto.mail.MailDTO;
 import ml.dev.common.dto.mail.MailSearchRequestDTO;
 import ml.dev.common.exception.ExceptionCodes;
 import ml.dev.common.exception.MLException;
-import ml.dev.common.rest.client.AccountClient;
 
 import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.ByteArrayResource;
@@ -43,22 +42,17 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 @Service
 public class EmailService {
 
     private static final Logger logger = Logger.getLogger(EmailService.class.getName());
-    @SuppressWarnings("unused")
-    private final ConfigProperties configProperties;
-    private final AccountClient accountClient;
+    private final AccountService accountService;
 
-    public EmailService(ConfigProperties configProperties) {
-        this.configProperties = configProperties;
-        this.accountClient = new AccountClient(configProperties.getAccountBaseurl(),
-                configProperties.getAccountBasePath(), configProperties.getAccountUser(),
-                configProperties.getAccountPasswd());
+    public EmailService(AccountService accountService) {
+        this.accountService = accountService;
     }
 
     public List<MailDTO> getMails(MailSearchRequestDTO msr) throws MLException {
@@ -72,7 +66,7 @@ public class EmailService {
             cal.set(Calendar.SECOND, 0);
             cal.add(Calendar.DAY_OF_MONTH, -1);
             List<SearchTerm> lSearchTerms = new ArrayList<>();
-            lSearchTerms.add(new ReceivedDateTerm(DateTerm.GT, cal.getTime()));
+            lSearchTerms.add(new ReceivedDateTerm(ComparisonTerm.GT, cal.getTime()));
             if (msr.getFromSearchTerm() != null && !msr.getFromSearchTerm().isEmpty())
                 lSearchTerms.add(new FromStringTerm(msr.getFromSearchTerm()));
             if (msr.getSubjectSearchTerm() != null && !msr.getSubjectSearchTerm().isEmpty())
@@ -80,7 +74,7 @@ public class EmailService {
             if (msr.getBodySearchTerm() != null && !msr.getBodySearchTerm().isEmpty())
                 lSearchTerms.add(new BodyTerm(msr.getBodySearchTerm()));
             Message[] messages = inbox.search(new AndTerm(lSearchTerms.toArray(new SearchTerm[0])));
-            return Arrays.asList(messages).stream().map(message -> mapperDTO(message)).collect(Collectors.toList());
+            return Arrays.asList(messages).stream().map(this::mapperDTO).toList();
         } catch (MessagingException e) {
             throw new MLException(ExceptionCodes.MAIL_SERVER_FAILED, e);
         }
@@ -97,23 +91,23 @@ public class EmailService {
                 mailDTO.setText(getTextFromMimeMultipart(mimeMultipart));
             }
             mailDTO.setTos(Arrays.asList(message.getRecipients(Message.RecipientType.TO)).stream()
-                    .map(address -> address.toString())
-                    .collect(Collectors.toList()));
+                    .map(Object::toString)
+                    .toList());
             if (message.getRecipients(Message.RecipientType.CC) != null)
                 mailDTO.setCcs(Arrays.asList(message.getRecipients(Message.RecipientType.CC)).stream()
-                        .map(address -> address.toString()).collect(Collectors.toList()));
+                        .map(Object::toString).toList());
 
             mailDTO.setFrom(((InternetAddress) message.getFrom()[0]).getAddress());
             mailDTO.setMedias(getAttachmentFiles(message));
             return mailDTO;
         } catch (MessagingException | IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, e.getMessage());
             return null;
         }
     }
 
     private Store getImapsConnection(String identifier) throws MLException {
-        AccountDTO accountDTO = accountClient.getAccountData("mail", identifier);
+        AccountDTO accountDTO = accountService.getAccountData("mail", identifier);
         Properties props = System.getProperties();
         props.setProperty("mail.store.protocol", "imaps");
         Session session = Session.getDefaultInstance(props, null);
@@ -124,7 +118,7 @@ public class EmailService {
                     accountDTO.getProperty("mail.sender.password", "mail").getPropertyValue());
             return store;
         } catch (MessagingException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, e.getMessage());
             throw new MLException(ExceptionCodes.MAIL_SERVER_FAILED, e);
         }
     }
@@ -149,13 +143,12 @@ public class EmailService {
                     helperMsg.addAttachment(mediaDTO.getName(), new ByteArrayResource(mediaDTO.getContent()));
             jms.send(message);
         } catch (MessagingException e) {
-            e.printStackTrace();
-            logger.info(e.getMessage());
+             logger.log(Level.SEVERE, e.getMessage());
         }
     }
 
     public JavaMailSender getJavaMailSender(String accountId) {
-        AccountDTO accountDTO = accountClient.getAccountData("mail", accountId);
+        AccountDTO accountDTO = accountService.getAccountData("mail", accountId);
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(accountDTO.getProperty("mail.sender.host", "mail").getPropertyValue());
         mailSender.setPort(Integer.valueOf(accountDTO.getProperty("mail.sender.port", "mail").getPropertyValue()));
@@ -194,8 +187,8 @@ public class EmailService {
             return "\n" + org.jsoup.Jsoup
                     .parse(bodyPart.getContent().toString())
                     .text();
-        if (bodyPart.getContent() instanceof MimeMultipart)
-            return getTextFromMimeMultipart((MimeMultipart) bodyPart.getContent());
+        if (bodyPart.getContent() instanceof MimeMultipart mimeMultipart)
+            return getTextFromMimeMultipart(mimeMultipart);
         return "";
     }
 
@@ -215,7 +208,7 @@ public class EmailService {
                 is.close();
             }
         } catch (MessagingException | IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, e.getMessage());
         }
         return attachments;
     }

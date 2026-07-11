@@ -1,5 +1,7 @@
 package ml.dev.mail;
 
+import javax.net.ssl.SSLException;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -41,7 +43,7 @@ public class WebClientConfig {
     }
 
     @Bean
-    public WebClient webClient(OAuth2AuthorizedClientManager authorizedClientManager) throws Exception {
+    public WebClient webClient(OAuth2AuthorizedClientManager authorizedClientManager) throws SSLException {
         // 1. SSL-Kontext erstellen, der alles akzeptiert (NUR FÜR DEV!)
         SslContext sslContext = SslContextBuilder
                 .forClient()
@@ -62,17 +64,6 @@ public class WebClientConfig {
                 .clientConnector(new ReactorClientHttpConnector(httpClient)) // Hier wird der "unsichere" Connector gesetzt
                 .apply(oauth2Client.oauth2Configuration())
                 .build();
-        
-        
-        
-       /*  ServletOAuth2AuthorizedClientExchangeFilterFunction oauth2Client = new ServletOAuth2AuthorizedClientExchangeFilterFunction(
-                authorizedClientManager);
-
-        oauth2Client.setDefaultClientRegistrationId("whatsapp-client");
-
-        return WebClient.builder()
-                .apply(oauth2Client.oauth2Configuration())
-                .build();*/
     }
 
 }

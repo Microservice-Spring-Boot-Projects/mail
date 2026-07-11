@@ -1,9 +1,9 @@
 name: MAIL_PIPELINE
 on:
   pull_request:
-    branches: [ "develop" ]
+    branches: [ "master" ]
   push:
-    branches: [ "develop" ]
+    branches: [ "master" ]
   workflow_dispatch:  
 jobs:
   build-and-test:
@@ -64,7 +64,7 @@ jobs:
   # 6. Deployment nur bei Push auf main      
   deploy:
     needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifact
