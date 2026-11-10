@@ -38,7 +38,7 @@ public class JWTAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         String claimName = JwtClaimNames.SUB;
         if(PRINCIPAL_ATTRIBUTE != null) 
             claimName = PRINCIPAL_ATTRIBUTE;
-        return jwt.getClaim(PRINCIPAL_ATTRIBUTE);
+        return jwt.getClaim(claimName);
     }
 
     @SuppressWarnings("unchecked")

@@ -131,16 +131,34 @@ public class EmailService {
             helperMsg.setFrom(mailDTO.getFrom());
             if (mailDTO.getReplyTo() != null)
                 helperMsg.setReplyTo(mailDTO.getReplyTo());
-            helperMsg.setTo(String.join(",", mailDTO.getTos()));
+            mailDTO.getTos().forEach(
+                    to -> {
+                        try { helperMsg.addTo(to);} catch (MessagingException e) { throw new RuntimeException(e);}
+                    }
+            );
             if (mailDTO.getBccs() != null && !mailDTO.getBccs().isEmpty())
-                helperMsg.setBcc(String.join(",", mailDTO.getBccs()));
+                mailDTO.getBccs().forEach(
+                        bcc -> {
+                            try { helperMsg.addBcc(bcc);} catch (MessagingException e) { throw new RuntimeException(e);}
+                        }
+                );
             if (mailDTO.getCcs() != null && !mailDTO.getCcs().isEmpty())
-                helperMsg.setCc(String.join(",", mailDTO.getCcs()));
+                mailDTO.getCcs().forEach(
+                        cc -> {
+                            try { helperMsg.addCc(cc);} catch (MessagingException e) { throw new RuntimeException(e);}
+                        }
+                );
             helperMsg.setSubject(mailDTO.getSubject());
             helperMsg.setText(mailDTO.getText(), true);
             if (!mailDTO.getMedias().isEmpty())
-                for (MediaDTO mediaDTO : mailDTO.getMedias())
-                    helperMsg.addAttachment(mediaDTO.getName(), new ByteArrayResource(mediaDTO.getContent()));
+                for (MediaDTO mediaDTO : mailDTO.getMedias()) {
+                    ByteArrayResource resource = new ByteArrayResource(mediaDTO.getContent());
+                    // media referenced as <img src="cid:name"> in the html text is embedded instead of attached
+                    if (mailDTO.getText() != null && mailDTO.getText().contains("cid:" + mediaDTO.getName()))
+                        helperMsg.addInline(mediaDTO.getName(), resource, mediaDTO.getContentType());
+                    else
+                        helperMsg.addAttachment(mediaDTO.getName(), resource);
+                }
             jms.send(message);
         } catch (MessagingException e) {
              logger.log(Level.SEVERE, e.getMessage());
@@ -148,6 +166,7 @@ public class EmailService {
     }
 
     public JavaMailSender getJavaMailSender(String accountId) {
+        logger.log(Level.INFO, "Fetching JavaMailSender for account: {}", accountId);
         AccountDTO accountDTO = accountService.getAccountData("mail", accountId);
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(accountDTO.getProperty("mail.sender.host", "mail").getPropertyValue());
