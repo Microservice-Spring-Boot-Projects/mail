@@ -133,27 +133,37 @@ public class EmailService {
                 helperMsg.setReplyTo(mailDTO.getReplyTo());
             mailDTO.getTos().forEach(
                     to -> {
-                        try { helperMsg.addTo(to);} catch (MessagingException e) { throw new RuntimeException(e);}
-                    }
-            );
+                        try {
+                            helperMsg.addTo(to);
+                        } catch (MessagingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
             if (mailDTO.getBccs() != null && !mailDTO.getBccs().isEmpty())
                 mailDTO.getBccs().forEach(
                         bcc -> {
-                            try { helperMsg.addBcc(bcc);} catch (MessagingException e) { throw new RuntimeException(e);}
-                        }
-                );
+                            try {
+                                helperMsg.addBcc(bcc);
+                            } catch (MessagingException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
             if (mailDTO.getCcs() != null && !mailDTO.getCcs().isEmpty())
                 mailDTO.getCcs().forEach(
                         cc -> {
-                            try { helperMsg.addCc(cc);} catch (MessagingException e) { throw new RuntimeException(e);}
-                        }
-                );
+                            try {
+                                helperMsg.addCc(cc);
+                            } catch (MessagingException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
             helperMsg.setSubject(mailDTO.getSubject());
             helperMsg.setText(mailDTO.getText(), true);
             if (!mailDTO.getMedias().isEmpty())
                 for (MediaDTO mediaDTO : mailDTO.getMedias()) {
                     ByteArrayResource resource = new ByteArrayResource(mediaDTO.getContent());
-                    // media referenced as <img src="cid:name"> in the html text is embedded instead of attached
+                    // media referenced as <img src="cid:name"> in the html text is embedded instead
+                    // of attached
                     if (mailDTO.getText() != null && mailDTO.getText().contains("cid:" + mediaDTO.getName()))
                         helperMsg.addInline(mediaDTO.getName(), resource, mediaDTO.getContentType());
                     else
@@ -161,12 +171,12 @@ public class EmailService {
                 }
             jms.send(message);
         } catch (MessagingException e) {
-             logger.log(Level.SEVERE, e.getMessage());
+            logger.log(Level.SEVERE, e.getMessage());
         }
     }
 
     public JavaMailSender getJavaMailSender(String accountId) {
-        logger.log(Level.INFO, "Fetching JavaMailSender for account: {}", accountId);
+        logger.log(Level.INFO, "Fetching JavaMailSender for account: {" + accountId + "}", accountId);
         AccountDTO accountDTO = accountService.getAccountData("mail", accountId);
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
         mailSender.setHost(accountDTO.getProperty("mail.sender.host", "mail").getPropertyValue());
